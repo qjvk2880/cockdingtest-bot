@@ -22,7 +22,7 @@ module.exports = {
     const components = active.map((t, idx) =>
       new ActionRowBuilder().addComponents(
         new ButtonBuilder()
-          .setCustomId(`terminate_${idx}`)
+          .setCustomId(JSON.stringify({ cmd: 'terminate', idx }))
           .setLabel(`${idx + 1}번 종료`)
           .setStyle(ButtonStyle.Danger),
       )
@@ -35,7 +35,13 @@ module.exports = {
     });
   },
   async handleButton(interaction) {
-    const idx = parseInt(interaction.customId.split('_')[1], 10);
+    let data;
+    try {
+      data = JSON.parse(interaction.customId);
+    } catch (e) {
+      return interaction.update({ content: '버튼 정보 파싱 오류', components: [] });
+    }
+    const idx = data?.idx;
     const test = ongoingTests[idx];
     if (!test) {
       return interaction.update({ content: '이미 종료된 테스트입니다.', components: [] });
