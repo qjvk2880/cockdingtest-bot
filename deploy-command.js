@@ -1,23 +1,18 @@
-const { REST, Routes, SlashCommandBuilder } = require('discord.js');
+const { REST, Routes } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
-const commands = [
-  new SlashCommandBuilder()
-    .setName('start')
-    .setDescription('코딩 테스트 타이머 시작')
-    .addIntegerOption(opt =>
-      opt.setName('duration')
-        .setDescription('시험 시간 (분 단위)')
-        .setRequired(true))
-    .addStringOption(opt =>
-      opt.setName('starttime')
-        .setDescription('시작 시각 (HH:mm)')
-        .setRequired(true))
-  ,
-  new SlashCommandBuilder()
-    .setName('status')
-    .setDescription('진행 중인 코딩 테스트 확인')
-].map(command => command.toJSON());
+const commands = [];
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+for (const file of commandFiles) {
+  const command = require(`./commands/${file}`);
+  if ('data' in command) {
+    commands.push(command.data.toJSON());
+  }
+}
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
