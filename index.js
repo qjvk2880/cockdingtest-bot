@@ -35,10 +35,9 @@ client.on("interactionCreate", async (interaction) => {
     const duration = interaction.options.getInteger("duration");
     const timeStr = interaction.options.getString("starttime");
 
-    if (!/^\d{1,2}:\d{2}$/.test(timeStr)) {
-      return interaction.reply("❌ 시작 시각은 HH:mm 형식으로 입력해주세요.");
+    if (!/^(?:[01]?\d|2[0-3]):[0-5]\d$/.test(timeStr)) {
+      return interaction.reply("❌ 시작 시각은 00:00~23:59 형식으로 입력해주세요.");
     }
-
     const startTime = parseTimeToFutureToday(timeStr);
     const endTime = new Date(startTime.getTime() + duration * 60000);
     const now = new Date();
