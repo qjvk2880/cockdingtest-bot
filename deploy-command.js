@@ -13,6 +13,10 @@ const commands = [
       opt.setName('starttime')
         .setDescription('시작 시각 (HH:mm)')
         .setRequired(true))
+  ,
+  new SlashCommandBuilder()
+    .setName('status')
+    .setDescription('진행 중인 코딩 테스트 확인')
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
