@@ -22,20 +22,30 @@ client.once('ready', () => {
 });
 
 client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (interaction.isChatInputCommand()) {
+    const command = interaction.client.commands.get(interaction.commandName);
+    if (!command) return;
 
-  const command = interaction.client.commands.get(interaction.commandName);
-  if (!command) return;
-
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    const reply = { content: '❌ 명령 실행 중 오류가 발생했습니다.', ephemeral: true };
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(reply);
-    } else {
-      await interaction.reply(reply);
+    try {
+      await command.execute(interaction);
+    } catch (error) {
+      console.error(error);
+      const reply = { content: '❌ 명령 실행 중 오류가 발생했습니다.', ephemeral: true };
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(reply);
+      } else {
+        await interaction.reply(reply);
+      }
+    }
+  } else if (interaction.isButton()) {
+    const [cmdName] = interaction.customId.split('_');
+    const command = interaction.client.commands.get(cmdName);
+    if (command && typeof command.handleButton === 'function') {
+      try {
+        await command.handleButton(interaction);
+      } catch (error) {
+        console.error(error);
+      }
     }
   }
 });
