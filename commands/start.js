@@ -44,28 +44,32 @@ module.exports = {
     const msUntilStart = startTime - now;
     const schedule = predefinedSchedules[duration] || defaultSchedule;
 
-    const testInfo = { startTime, endTime, userId: interaction.user.id, duration };
-    ongoingTests.push(testInfo);
-    setTimeout(() => {
-      const idx = ongoingTests.indexOf(testInfo);
-      if (idx !== -1) ongoingTests.splice(idx, 1);
-    }, msUntilStart + duration * 60000);
+  const label = `${startTime.toLocaleTimeString('ko-KR')} ~ ${endTime.toLocaleTimeString('ko-KR')}`;
+  const testInfo = { startTime, endTime, userId: interaction.user.id, duration, timeouts: [], label };
+  ongoingTests.push(testInfo);
 
-    await interaction.reply(`🧠 ${startTime.toLocaleTimeString('ko-KR')}에 코딩테스트 시작 (⏱ ${duration}분)`);
+  await interaction.reply(`🧠 ${startTime.toLocaleTimeString('ko-KR')}에 코딩테스트 시작 (⏱ ${duration}분)`);
 
-    setTimeout(() => {
-      interaction.followUp('🚀 코딩테스트 시작!');
-      schedule.forEach((offset) => {
-        const after = duration - offset;
-        if (after > 0) {
-          setTimeout(() => {
-            interaction.followUp(`⏳ ${offset}분 남았습니다!`);
-          }, after * 60000);
-        }
-      });
-      setTimeout(() => {
-        interaction.followUp('⛳ 코딩 테스트 종료!');
-      }, duration * 60000);
-    }, msUntilStart);
+  const startTimeout = setTimeout(() => {
+    interaction.followUp('🚀 코딩테스트 시작!');
+  }, msUntilStart);
+  testInfo.timeouts.push(startTimeout);
+
+  schedule.forEach((offset) => {
+    const after = duration - offset;
+    if (after > 0) {
+      const t = setTimeout(() => {
+        interaction.followUp(`⏳ ${offset}분 남았습니다!`);
+      }, msUntilStart + after * 60000);
+      testInfo.timeouts.push(t);
+    }
+  });
+
+  const endTimeout = setTimeout(() => {
+    interaction.followUp('⛳ 코딩 테스트 종료!');
+    const idx = ongoingTests.indexOf(testInfo);
+    if (idx !== -1) ongoingTests.splice(idx, 1);
+  }, msUntilStart + duration * 60000);
+  testInfo.timeouts.push(endTimeout);
   },
 };
