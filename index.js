@@ -1,4 +1,11 @@
-const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
+const {
+  Client,
+  GatewayIntentBits,
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} = require("discord.js");
 require("dotenv").config();
 
 const client = new Client({
@@ -14,6 +21,7 @@ const predefinedSchedules = {
 };
 const defaultSchedule = [30, 10];
 const ongoingTests = [];
+let nextId = 1;
 
 function parseTimeToFutureToday(timeStr) {
   const [hour, minute] = timeStr.split(":").map(Number);
@@ -29,6 +37,29 @@ client.once("ready", () => {
 });
 
 client.on("interactionCreate", async (interaction) => {
+  if (interaction.isButton()) {
+    if (interaction.customId.startsWith("terminate_")) {
+      const id = Number(interaction.customId.split("_")[1]);
+      const test = ongoingTests.find((t) => t.id === id);
+      if (!test) {
+        return interaction.reply({
+          content: "이미 종료된 테스트입니다.",
+          ephemeral: true,
+        });
+      }
+      const idx = ongoingTests.indexOf(test);
+      if (idx !== -1) ongoingTests.splice(idx, 1);
+      await interaction.channel.send(
+        `**코딩 테스트가 ${interaction.user}에 의해 강제 종료되었습니다.**`
+      );
+      return interaction.update({
+        content: "테스트를 종료했습니다.",
+        components: [],
+      });
+    }
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === "start") {
@@ -44,7 +75,13 @@ client.on("interactionCreate", async (interaction) => {
     const msUntilStart = startTime - now;
     const schedule = predefinedSchedules[duration] || defaultSchedule;
 
-    const testInfo = { startTime, endTime, userId: interaction.user.id, duration };
+    const testInfo = {
+      id: nextId++,
+      startTime,
+      endTime,
+      userId: interaction.user.id,
+      duration,
+    };
     ongoingTests.push(testInfo);
     setTimeout(() => {
       const idx = ongoingTests.indexOf(testInfo);
@@ -90,6 +127,40 @@ client.on("interactionCreate", async (interaction) => {
     });
 
     return interaction.reply({ embeds: [embed], ephemeral: true });
+  } else if (interaction.commandName === "terminate") {
+    const now = new Date();
+    const active = ongoingTests.filter((t) => t.endTime > now);
+
+    if (active.length === 0) {
+      return interaction.reply({
+        content: "진행중인 코딩 테스트가 없습니다.",
+        ephemeral: true,
+      });
+    }
+
+    const description = active
+      .map(
+        (t, i) =>
+          `${i + 1}. ${t.startTime.toLocaleTimeString("ko-KR")} ~ ${t.endTime.toLocaleTimeString(
+            "ko-KR"
+          )} (<@${t.userId}>)`
+      )
+      .join("\n");
+
+    const components = active.map((t) =>
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`terminate_${t.id}`)
+          .setLabel("종료")
+          .setStyle(ButtonStyle.Danger)
+      )
+    );
+
+    return interaction.reply({
+      content: description,
+      components,
+      ephemeral: true,
+    });
   }
 });
 

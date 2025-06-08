@@ -17,6 +17,10 @@ const commands = [
   new SlashCommandBuilder()
     .setName('status')
     .setDescription('진행 중인 코딩 테스트 확인')
+  ,
+  new SlashCommandBuilder()
+    .setName('terminate')
+    .setDescription('진행 중인 테스트 강제 종료')
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
