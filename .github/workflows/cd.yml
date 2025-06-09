@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  build-docker-image:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,15 +19,15 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
+          username: ec2-user
           key: ${{ secrets.EC2_PEM_KEY }}
           script: |
-            cd home/ubuntu/cockdingtest-bot
+            cd cockdingtest-bot
 
             git pull
 
             node deploy-commands.js
-            
+
             echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
             echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> .env
             echo "GUILD_ID=${{ secrets.GUILD_ID }}" >> .env
