@@ -67,7 +67,7 @@ export default {
     endTime,
     userId: interaction.user.id,
     duration,
-    timeouts: [] as NodeJS.Timeout[],
+    timeouts: [] as any[],
     label,
     participants,
     channelId: interaction.channelId,
@@ -147,7 +147,8 @@ export default {
     test.scores[interaction.user.id] = { name: interaction.user.username, score };
     await interaction.reply({ content: '점수가 기록되었습니다.', ephemeral: true });
     if (Object.keys(test.scores).length >= test.participants) {
-      const results = Object.values(test.scores).sort((a, b) => b.score - a.score);
+      const scores = test.scores as Record<string, { name: string; score: number }>;
+      const results = Object.values(scores).sort((a, b) => b.score - a.score);
       const medals = ['🥇', '🥈', '🥉'];
       const lines = results.map((r, i) => `${medals[i] || `${i + 1}.`} ${r.name} - ${r.score}점`);
       const message = `🏁 코딩테스트 결과\n\n${lines.join('  \n')}`;

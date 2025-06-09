@@ -1,10 +1,10 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, TextBasedChannel } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import ongoingTests from './ongoing-tests';
 
-export function concludeTest(test: any, channel: TextBasedChannel) {
+export function concludeTest(test: any, channel: any) {
   if (test.ended) return;
   test.ended = true;
-  test.timeouts.forEach((t: NodeJS.Timeout) => clearTimeout(t));
+  test.timeouts.forEach((t: any) => clearTimeout(t));
   const idx = ongoingTests.indexOf(test);
   if (idx === -1) return;
   channel.send({
