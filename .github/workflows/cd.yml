@@ -26,7 +26,7 @@ jobs:
 
             git pull
 
-            node deploy-commands.js
+            node deploy-command.js
 
             echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
             echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> .env
