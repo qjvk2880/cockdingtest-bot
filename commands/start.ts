@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require('discord.js');
-const ongoingTests = require('../ongoing-tests');
+import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
+import ongoingTests from '../ongoing-tests';
 
 const predefinedSchedules = {
   180: [90, 60, 30, 10],
@@ -10,7 +10,7 @@ const predefinedSchedules = {
 };
 const defaultSchedule = [30, 10];
 
-function parseTimeToFutureToday(timeStr) {
+function parseTimeToFutureToday(timeStr: string): Date {
   const [hour, minute] = timeStr.split(':').map(Number);
   const now = new Date();
   const startTime = new Date(now);
@@ -19,7 +19,7 @@ function parseTimeToFutureToday(timeStr) {
   return startTime;
 }
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName('start')
     .setDescription('코딩 테스트 타이머 시작')
@@ -31,9 +31,9 @@ module.exports = {
       opt.setName('starttime')
         .setDescription('시작 시각 (HH:mm)')
         .setRequired(true)),
-  async execute(interaction) {
-    const duration = interaction.options.getInteger('duration');
-    const timeStr = interaction.options.getString('starttime');
+  async execute(interaction: ChatInputCommandInteraction) {
+    const duration = interaction.options.getInteger('duration', true);
+    const timeStr = interaction.options.getString('starttime', true);
 
     if (!/^(?:[01]?\d|2[0-3]):[0-5]\d$/.test(timeStr)) {
       return interaction.reply('❌ 시작 시각은 00:00~23:59 형식으로 입력해주세요.');
@@ -41,11 +41,11 @@ module.exports = {
     const startTime = parseTimeToFutureToday(timeStr);
     const endTime = new Date(startTime.getTime() + duration * 60000);
     const now = new Date();
-    const msUntilStart = startTime - now;
-    const schedule = predefinedSchedules[duration] || defaultSchedule;
+    const msUntilStart = startTime.getTime() - now.getTime();
+    const schedule = (predefinedSchedules as any)[duration] || defaultSchedule;
 
   const label = `${startTime.toLocaleTimeString('ko-KR')} ~ ${endTime.toLocaleTimeString('ko-KR')}`;
-  const testInfo = { startTime, endTime, userId: interaction.user.id, duration, timeouts: [], label };
+  const testInfo = { startTime, endTime, userId: interaction.user.id, duration, timeouts: [] as NodeJS.Timeout[], label };
   ongoingTests.push(testInfo);
 
   await interaction.reply(`🧠 ${startTime.toLocaleTimeString('ko-KR')}에 코딩테스트 시작 (⏱ ${duration}분)`);
@@ -55,7 +55,7 @@ module.exports = {
   }, msUntilStart);
   testInfo.timeouts.push(startTimeout);
 
-  schedule.forEach((offset) => {
+  schedule.forEach((offset: number) => {
     const after = duration - offset;
     if (after > 0) {
       const t = setTimeout(() => {
