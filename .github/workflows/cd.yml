@@ -32,4 +32,4 @@ jobs:
             echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> .env
             echo "GUILD_ID=${{ secrets.GUILD_ID }}" >> .env
 
-            pm2 restart 
+            pm2 restart index
