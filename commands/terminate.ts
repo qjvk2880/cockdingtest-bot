@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ButtonInteraction } from 'discord.js';
 import ongoingTests from '../ongoing-tests';
+import { concludeTest } from '../test-utils';
 
 export default {
   data: new SlashCommandBuilder()
@@ -46,8 +47,7 @@ export default {
     if (!test) {
       return interaction.update({ content: '이미 종료된 테스트입니다.', components: [] });
     }
-    test.timeouts.forEach((t: NodeJS.Timeout) => clearTimeout(t));
-    ongoingTests.splice(idx, 1);
+    concludeTest(test, interaction.channel as any);
     const testName = test.label || `${test.startTime.toLocaleTimeString('ko-KR')} ~ ${test.endTime.toLocaleTimeString('ko-KR')}`;
     await interaction.update({ content: `${testName} 테스트 종료`, components: [] });
     await (interaction.channel as any).send(`**${testName} 테스트가 <@${interaction.user.id}>에 의해 강제 종료되었습니다.**`);
