@@ -29,6 +29,8 @@ client.on('interactionCreate', async (interaction: Interaction) => {
     await handleCommand(interaction as any);
   } else if (interaction.isButton()) {
     await handleButton(interaction as any);
+  } else if (interaction.isModalSubmit()) {
+    await handleModal(interaction as any);
   }
 });
 
@@ -61,6 +63,24 @@ async function handleButton(interaction: any) {
   if (command && typeof command.handleButton === 'function') {
     try {
       await command.handleButton(interaction);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+}
+
+async function handleModal(interaction: any) {
+  let data;
+  try {
+    data = JSON.parse(interaction.customId);
+  } catch (e) {
+    console.error('모달 customId 파싱 오류:', e);
+    return;
+  }
+  const command = (interaction.client as any).commands.get(data?.cmd);
+  if (command && typeof command.handleModal === 'function') {
+    try {
+      await command.handleModal(interaction);
     } catch (error) {
       console.error(error);
     }
